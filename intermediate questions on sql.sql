@@ -15,7 +15,6 @@ left join employee_projects ep
 on e.employee_id=ep.employee_id
 where ep.project_id is null;
 
-
 /* Find the employee(s) with the highest salary in each department.*/
 with max_salaries as (
 select department_id, Max(salary) as high_salary 
@@ -48,7 +47,6 @@ select * from projects;
 #####################################################################
 /*Find all departments where the average salary of employees is 
 greater than $50,000.*/
-
 select department_id, avg(salary) as avh_sal from employees group by department_id having avh_sal > 50000; 
 
 #####################################################################
@@ -60,6 +58,7 @@ group by d.department_id;
 #####################################################################
 /*List all projects that were started after January 1, 2020*/
 select project_id, project_name, start_date from projects where date(start_date) > "2020-01-01";
+
 SELECT project_id, project_name, start_date
 FROM projects
 WHERE start_date > '2020-01-01';
@@ -72,12 +71,14 @@ select name from employees where manager_id is null;
 /*Find the second highest salary among all employees*/
 select name , salary from employees order by salary desc limit 1 offset 1;
 
+select name , salary from employees order by salary desc limit 1,1;
+
 select max(salary) from employees where salary < (select max(salary) from employees)  ;
 
-with nth as (select salary, rank() over(order by salary desc) as rnk from employees)
+with nth as (select salary, dense_rank() over(order by salary desc) as rnk from employees)
 select salary from nth where rnk = 2;
 
-select * from (select salary, rank() over(order by salary desc) as rnk from employees) a where rnk = 3;
+select * from (select salary, dense_rank() over(order by salary desc) as rnk from employees) as a where rnk = 2;
 
 #####################################################################
 /* List all employees who were hired in the last 5 years*/
@@ -111,22 +112,22 @@ select manager_id, count(employee_id) as cnt from employees group by manager_id 
 
 #######################################################################
 /*List the employees who share the same department and manager*/
-select e.name , e2.name from employees e join employees e2 on e.name = e2.name and e.employee_id <> e2.employee_id
+select e.name , e2.name 
+ from employees e 
+ join employees e2 
+ on e.name = e2.name and e.employee_id <> e2.employee_id
 group by department_id;
 
 select * from employees ; 
 #######################################################################
 /*Find all employees who have the same job title but different salaries.*/
-
 SELECT name, salary, job_title
 FROM employees e
 WHERE job_title IN (
     SELECT job_title
     FROM employees
     GROUP BY job_title
-    HAVING COUNT(DISTINCT salary) > 1
-);
-
+    HAVING COUNT(DISTINCT salary) > 1);
 
 #####################################################################
 /*Retrieve the department names where the total salary expenditure is more than $100,000*/
@@ -159,7 +160,7 @@ select department_id, avg(salary) from employees group by department_id;
  
  #################################################################
  /*Retrieve all projects that have been completed within the last 3 years*/
- # select project_id, project_name from projects where timestampdiff(year, start_date, end_date) > 3;
+select project_id, project_name from projects where timestampdiff(year, start_date, end_date) > 3;
  
 SELECT project_name, end_date
 FROM projects
@@ -217,12 +218,12 @@ join projects p on p.project_id=ep.project_id;
 
 ################################################################
  /*Retrieve the employees who have the same last name but work in different departments.*/
- select e1.name, e1.department_id from employees e1 
+ select e1.name, e1.department_id 
+ from employees e1 
  join employees e2 
  on e1.name=e2.name 
  where e1.department_id !=e2.department_id;
- select * from employees;
-
+ 
 #######################################################################
 /*Get a list of projects along with the total number of employees assigned to each, including projects with no employees.*/
 select p.project_id, p.project_name, count(e.employee_id) as cnt  from projects p
